@@ -160,6 +160,113 @@ canvas {
 <script>
 let radarChart;
 
+// ---- Demo chart on page load (so you SEE it immediately) ----
+window.onload = function() {
+    createRadarChart({
+        "Python": 70,
+        "Statistics": 50,
+        "Machine Learning": 65,
+        "SQL": 40,
+        "Data Visualization": 55
+    });
+};
+
+// ---- Form Submission ----
+document.getElementById("careerForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    document.getElementById("loader").style.display = "block";
+
+    const currentRole = document.getElementById("currentRole").value;
+    const targetRole = document.getElementById("targetRole").value;
+    const experience = document.getElementById("experience").value;
+
+    try {
+        const response = await fetch("https://your-backend-url.com/analyze", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                current_role: currentRole,
+                target_role: targetRole,
+                experience: experience
+            })
+        });
+
+        const data = await response.json();
+
+        document.getElementById("skillGap").innerText = data.skill_gap + "%";
+        document.getElementById("difficulty").innerText = data.difficulty + "%";
+        document.getElementById("probability").innerText = data.probability + "%";
+
+        if (data.skill_breakdown) {
+            createRadarChart(data.skill_breakdown);
+        }
+
+    } catch (error) {
+        console.log("Backend not connected — showing demo chart.");
+    }
+
+    document.getElementById("loader").style.display = "none";
+});
+
+// ---- Radar Chart Function ----
+function createRadarChart(skillData) {
+
+    const labels = Object.keys(skillData);
+    const values = Object.values(skillData);
+
+    if (radarChart) {
+        radarChart.destroy();
+    }
+
+    const ctx = document.getElementById('radarChart').getContext('2d');
+
+    radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Skill Gap Level',
+                data: values,
+                backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                borderColor: '#ffffff',
+                borderWidth: 3,
+                pointBackgroundColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    min: 0,
+                    max: 100,
+                    ticks: {
+                        stepSize: 20,
+                        backdropColor: "transparent",
+                        color: "white"
+                    },
+                    grid: { color: "rgba(255,255,255,0.3)" },
+                    angleLines: { color: "rgba(255,255,255,0.3)" },
+                    pointLabels: {
+                        color: "white",
+                        font: { size: 14 }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: { color: "white" }
+                }
+            }
+        }
+    });
+}
+</script>
+<!---
+<script>
+let radarChart;
+
 document.getElementById("careerForm").addEventListener("submit", async function(e) {
     e.preventDefault();
 
@@ -239,6 +346,7 @@ function createRadarChart(skillData) {
     });
 }
 </script>
+    --->
 
 </body>
 </html>
